@@ -4,5 +4,5 @@ from django.urls import path, re_path
 
 
 urlpatterns = [
-    path('', views.LeadListCreate.as_view())
+    path('', views.index),
 ]
