@@ -1,0 +1,9 @@
+version: "3.7"
+
+services:
+    webapp:
+        build: .
+        container_name: TwitchVisualizer
+        env_file: .env
+        ports:
+            - 8000:8000
