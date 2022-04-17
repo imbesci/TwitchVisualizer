@@ -26,6 +26,9 @@ class GameData(models.Model):
     game_name = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f'{self.game_name}:{self.game_id}'
+
 
 class StreamerData(models.Model):
     class Meta:
@@ -34,4 +37,7 @@ class StreamerData(models.Model):
     streamer_id = models.IntegerField()
     streamer_login = models.CharField(max_length=100)
     streamer_name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f'{self.streamer_name}:{self.streamer_id}'
 
