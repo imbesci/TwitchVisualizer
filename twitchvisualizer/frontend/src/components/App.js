@@ -14,5 +14,5 @@ export default function App(props){
     )
 }
 
-const root = reactDOM.createRoot(document.getElementById('root'))
+root = reactDOM.createRoot(document.getElementById('root'))
 root.render(<App />)
