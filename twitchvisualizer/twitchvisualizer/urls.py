@@ -25,4 +25,4 @@ urlpatterns = [
     path('', include('frontend.urls')) 
 ]
 
-urlpatterns += staticfiles_urlpatterns()
+urlpatterns += staticfiles_urlpatterns() 

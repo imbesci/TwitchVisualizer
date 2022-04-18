@@ -4,6 +4,8 @@ services:
     webapp:
         build: .
         container_name: TwitchVisualizer
+        volumes:
+            - ./TwitchVisualizer:/usr/src/TwitchVisualizer
         env_file: .env
         ports:
             - 8000:8000
