@@ -1,6 +1,8 @@
-from twitchvisualizer.celery import app
+from celery import shared_task
 
-app.task(name='testfunction')
+@shared_task
 def celerytestfunction():
     print('celery is handling this operation')
-    return True
+    for i in range(10):
+        print(i)
+
