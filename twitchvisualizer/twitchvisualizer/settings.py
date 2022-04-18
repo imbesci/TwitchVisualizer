@@ -12,10 +12,14 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 import os 
+import environ
+
+env = environ.Env()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+env.read_env('../.env')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
@@ -23,8 +27,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-u449$d!gfa(20s3++t@h%-&nge!!s@yp#fc1f5xw&xzb1&0j3$'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
-DEBUG = int(os.environ.get('DEBUG', default=1))
+DEBUG = True
+# DEBUG = int(os.environ.get('DEBUG', default=1))
 
 
 ALLOWED_HOSTS = []
@@ -39,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     'django_crontab',
     'django_celery_results',
     'api',
@@ -145,3 +150,8 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
 
 CELERY_RESULT_BACKEND = 'django-db'
+
+#GLOBAL VAR
+TWITCH_CLIENT_ID = env('CLIENT_ID')
+TWITCH_CLIENT_SECRET = env('CLIENT_SECRET')
+
