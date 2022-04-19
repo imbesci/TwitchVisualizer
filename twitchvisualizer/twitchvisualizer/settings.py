@@ -94,7 +94,7 @@ DATABASES = {
 } 
 
 CRONJOBS = [
-    ('* * * * *', 'api.cron.testfunc', ), 
+    ('* * * * *', 'api.cron.testfunc',), 
 ]
 
 # Password validation
@@ -155,3 +155,5 @@ CELERY_RESULT_BACKEND = 'django-db'
 TWITCH_CLIENT_ID = env('CLIENT_ID')
 TWITCH_CLIENT_SECRET = env('CLIENT_SECRET')
 
+#SHELL_PLUS_CONFIG
+SHELL_PLUS_IMPORTS = ['from api.cron import *']
