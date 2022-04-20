@@ -24,7 +24,7 @@ env.read_env('../.env')
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-u449$d!gfa(20s3++t@h%-&nge!!s@yp#fc1f5xw&xzb1&0j3$'
+SECRET_KEY = env('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
-    'django_crontab',
     'django_celery_results',
     'api',
     'frontend',
@@ -156,4 +155,4 @@ TWITCH_CLIENT_ID = env('CLIENT_ID')
 TWITCH_CLIENT_SECRET = env('CLIENT_SECRET')
 
 #SHELL_PLUS_CONFIG
-SHELL_PLUS_IMPORTS = ['from api.cron import *']
+SHELL_PLUS_IMPORTS = ['from api.twitch import *']

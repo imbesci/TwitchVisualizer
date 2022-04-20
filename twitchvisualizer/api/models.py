@@ -8,6 +8,9 @@ class FetchDateTimes(models.Model):
         verbose_name_plural = "FetchDateTimes"
 
     fetch_date = models.DateTimeField('Created', default=timezone.now)
+    
+    def __str__(self):
+        return f'{self.fetch_date}'
 
 #Handle storage of access token fetching
 class Security(models.Model):
@@ -46,5 +49,33 @@ class GameData(models.Model):
     object_creation_date = models.DateTimeField('Created', default=timezone.now)
 
     def __str__(self):
-        return f'Name: {self.game_name}, id: {self.game_id}'
+        return f'{self.game_name}'
     
+#Handle storage of channel id's
+class ChannelData(models.Model):
+    class Meta:
+        verbose_name_plural = 'ChannelData'
+
+    channel_name = models.CharField(max_length=250)
+    channel_id = models.IntegerField()
+    channel_login = models.CharField(max_length=250)
+    fetch_set = models.ForeignKey(FetchDateTimes, on_delete=models.CASCADE)
+    object_creation_date = models.DateTimeField('Created', default=timezone.now)
+
+    def __str__(self) -> str:
+        return f'{self.channel_name}'
+
+#Stream viewer info
+class Stream(models.Model):
+    class Meta:
+        verbose_name_plural = 'Streams'
+    
+    channel = models.ForeignKey(ChannelData, on_delete=models.CASCADE)
+    viewer_count = models.IntegerField()
+    stream_started_at = models.DateTimeField(null=True)
+    fetch_set = models.ForeignKey(FetchDateTimes, on_delete=models.CASCADE)
+    object_creation_date = models.DateTimeField('Created', default=timezone.now)
+
+
+    def __str__(self) -> str:
+        return f'{self.channel.channel_name}:{self.viewer_count}'
