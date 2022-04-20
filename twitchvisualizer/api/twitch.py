@@ -75,10 +75,9 @@ def fetch_streams(id, token, new_date, game):
         'Authorization': token,
         'Client-ID': id,
         }
-    val_id = GameData.objects.filter(game_name=f'{game}')[0].game_id
-    print(val_id)
+    game_object = GameData.objects.filter(game_name=f'{game}')[0]
     parameters = {
-        'game_id': val_id,
+        'game_id': game_object.game_id,
         'first': '30'
         }
     retry_count = 0
@@ -96,7 +95,7 @@ def fetch_streams(id, token, new_date, game):
                         'fetch_set': new_date
                         }
                     )
-                Stream.objects.create(channel=channel, viewer_count=item['viewer_count'], stream_started_at=item['started_at'], fetch_set=new_date)
+                Stream.objects.create(channel=channel, viewer_count=item['viewer_count'], game_played=game_object, stream_started_at=item['started_at'], fetch_set=new_date)
             return True
         else: #if request code not ok
             retry_count+=1

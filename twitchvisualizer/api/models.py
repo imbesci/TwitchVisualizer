@@ -72,6 +72,7 @@ class Stream(models.Model):
     
     channel = models.ForeignKey(ChannelData, on_delete=models.CASCADE)
     viewer_count = models.IntegerField()
+    game_played = models.ForeignKey(GameData, on_delete=models.CASCADE)
     stream_started_at = models.DateTimeField(null=True)
     fetch_set = models.ForeignKey(FetchDateTimes, on_delete=models.CASCADE)
     object_creation_date = models.DateTimeField('Created', default=timezone.now)

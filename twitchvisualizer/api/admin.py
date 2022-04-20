@@ -27,8 +27,8 @@ class ChannelDataAdmin(admin.ModelAdmin):
     list_display = readonly_fields
 
 class StreamAdmin(admin.ModelAdmin):
-    readonly_fields = ('channel', 'viewer_count', 'stream_started_at', 'fetch_set', 'object_creation_date')
-    list_display = ('channel', 'viewer_count', 'stream_started_at', 'fetch_set', 'object_creation_date') 
+    readonly_fields = ('channel', 'viewer_count', 'game_played', 'stream_started_at', 'fetch_set', 'object_creation_date')
+    list_display = ('channel', 'viewer_count', 'game_played', 'stream_started_at', 'fetch_set', 'object_creation_date') 
 
 
 
