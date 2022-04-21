@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'django_extensions',
     'django_celery_results',
     'api',
@@ -50,10 +51,11 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware', 
     # "django.middleware.security.SecurityMiddleware",
     # "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -155,4 +157,18 @@ TWITCH_CLIENT_ID = env('CLIENT_ID')
 TWITCH_CLIENT_SECRET = env('CLIENT_SECRET')
 
 #SHELL_PLUS_CONFIG
-SHELL_PLUS_IMPORTS = ['from api.twitch import *']
+SHELL_PLUS_IMPORTS = ['from api.twitch import *', 'from django.db.models.functions import TruncSecond']
+
+#CORS
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_WHITELIST = [
+    'http://127.0.0.1:8000',]
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+# CORS_ALLOW_HEADERS=['access-control-allow-origin', 'access-control-allow-methods']

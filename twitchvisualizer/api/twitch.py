@@ -1,9 +1,13 @@
-import re
-from amqp import Channel
+import pandas as pd
 import requests
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, date, time, timedelta, tzinfo
+from django.utils import timezone
 from django.conf import settings
 from .models import FetchDateTimes, Security, GameData,ChannelData, Stream
+from django.db.models.functions import TruncSecond, TruncMinute, TruncHour, TruncDay
+from django.db.models import F 
+
+FETCH_COUNT = 0
 
 def calculate_expiry(token_fetched_date, time_until_exp):
     """Determine how many seconds remain is remaining on current access token"""
@@ -15,11 +19,11 @@ def calculate_expiry(token_fetched_date, time_until_exp):
 def check_token_valid():
     """Check to see if the most recent access token. Returns the most recent valid access token or False if unsuccessful"""
 
-    valid_token, securities_set = None, Security.objects.order_by('object_creation_date').reverse()
+    valid_token, securities_set = None, Security.objects.order_by('creation_date').reverse()
     i = 0
     while i<len(securities_set):
         token_object = securities_set[i]
-        fetch_date, time_until_exp = token_object.object_creation_date, token_object.expires_in
+        fetch_date, time_until_exp = token_object.creation_date, token_object.expires_in
         if (token_object.token_type == "bearer") and (calculate_expiry(fetch_date, time_until_exp) > 600):
             valid_token = securities_set[i]
             break
@@ -95,7 +99,7 @@ def fetch_streams(id, token, new_date, game):
                         'fetch_set': new_date
                         }
                     )
-                Stream.objects.create(channel=channel, viewer_count=item['viewer_count'], game_played=game_object, stream_started_at=item['started_at'], fetch_set=new_date)
+                Stream.objects.create(channel=channel, viewer_count=item['viewer_count'], game_played=game_object, stream_date=item['started_at'], fetch_set=new_date)
             return True
         else: #if request code not ok
             retry_count+=1
@@ -115,6 +119,24 @@ def fetch_data(game):
         fetch_access_token(id, secret,new_date)
         token = check_token_valid()
     
-    bearer_token = 'Bearer ' + token
+    bearer_token = f'Bearer {token}'
     fetch_get_games(id, bearer_token, new_date)
     fetch_streams(id, bearer_token, new_date, game)
+
+
+def separate_data():
+    const_chart_lengths = [2, 30, 120, 480, 2880]
+    const_today = datetime.combine(datetime.today(), time(0,0,0), tzinfo=timezone.utc)
+    unique_streamers = Stream.objects.values('channel').distinct()
+    for ind, streamer in enumerate(unique_streamers):
+        streamer_name = ChannelData.objects.get(pk = streamer['channel']).channel_name
+        streamer_qs = Stream.objects.filter(channel = streamer['channel']).annotate(stream_today=TruncDay('stream_date')).filter(stream_today = const_today).order_by('creation_date').values('creation_date', 'viewer_count', 'channel_id')
+        len_streamer_qs = len(streamer_qs)
+        if not len_streamer_qs:
+            continue
+
+        if ind == 0: # need to implement dataframe updating for all timeframes
+            streamdf = pd.DataFrame(streamer_qs)
+            thirtysecond = streamdf.resample("D", on='creation_date').mean().reset_index()
+            return thirtysecond
+                

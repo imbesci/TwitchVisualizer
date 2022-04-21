@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils import timezone
+import datetime
 from django_celery_results.models import TaskResult
+from django.db.models.functions import TruncSecond, TruncMinute, TruncHour, TruncDay
 
 #Base class for entire api pull session
 class FetchDateTimes(models.Model):
@@ -22,7 +24,7 @@ class Security(models.Model):
     token_type = models.CharField(max_length=250)
     response_code = models.IntegerField(null=True)
     fetch_set = models.ForeignKey(FetchDateTimes, on_delete=models.CASCADE)
-    object_creation_date = models.DateTimeField('Created', default=timezone.now)
+    creation_date = models.DateTimeField('Created', default=timezone.now)
 
     def __str__(self):
         return f'{self.object_creation_date}'
@@ -46,7 +48,7 @@ class GameData(models.Model):
     game_name = models.CharField(max_length=250)
     game_id = models.IntegerField()
     fetch_set = models.ForeignKey(FetchDateTimes, on_delete=models.CASCADE)
-    object_creation_date = models.DateTimeField('Created', default=timezone.now)
+    creation_date = models.DateTimeField('Created', default=timezone.now)
 
     def __str__(self):
         return f'{self.game_name}'
@@ -60,7 +62,7 @@ class ChannelData(models.Model):
     channel_id = models.IntegerField()
     channel_login = models.CharField(max_length=250)
     fetch_set = models.ForeignKey(FetchDateTimes, on_delete=models.CASCADE)
-    object_creation_date = models.DateTimeField('Created', default=timezone.now)
+    creation_date = models.DateTimeField('Created', default=timezone.now)
 
     def __str__(self) -> str:
         return f'{self.channel_name}'
@@ -73,10 +75,54 @@ class Stream(models.Model):
     channel = models.ForeignKey(ChannelData, on_delete=models.CASCADE)
     viewer_count = models.IntegerField()
     game_played = models.ForeignKey(GameData, on_delete=models.CASCADE)
-    stream_started_at = models.DateTimeField(null=True)
+    stream_date = models.DateTimeField(null=True)
     fetch_set = models.ForeignKey(FetchDateTimes, on_delete=models.CASCADE)
-    object_creation_date = models.DateTimeField('Created', default=timezone.now)
+    creation_date = models.DateTimeField('Created', default=timezone.now)
 
 
     def __str__(self) -> str:
         return f'{self.channel.channel_name}:{self.viewer_count}'
+    
+
+#Storage of different timeframe data for future serialization
+class OneMinuteData(models.Model):
+    class Meta:
+        verbose_name_plural = 'One Minute Data'
+    
+    channel_name = models.CharField(max_length=250)
+    viewers = models.IntegerField()
+    channel_id = models.IntegerField()
+
+class FifteenMinuteData(models.Model):
+    class Meta:
+        verbose_name_plural = 'Fifteen Minute Data'
+    
+    channel_name = models.CharField(max_length=250)
+    viewers = models.IntegerField()
+    channel_id = models.IntegerField()
+
+class OneHourData(models.Model):
+    class Meta:
+        verbose_name_plural = 'Hourly Data'
+    
+    channel_name = models.CharField(max_length=250)
+    viewers = models.IntegerField()
+    channel_id = models.IntegerField()
+
+class FourHourData(models.Model):
+    class Meta:
+        verbose_name_plural = '4 Hour Data'
+    
+    channel_name = models.CharField(max_length=250)
+    viewers = models.IntegerField()
+    channel_id = models.IntegerField()
+
+class DailyData(models.Model):
+    class Meta:
+        verbose_name_plural = 'Daily Data'
+    
+    channel_name = models.CharField(max_length=250)
+    viewers = models.IntegerField()
+    channel_id = models.IntegerField()
+
+####                                     ####
