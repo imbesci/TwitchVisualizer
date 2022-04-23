@@ -3,7 +3,7 @@ import requests
 from datetime import datetime, date, time, timedelta, tzinfo
 from django.utils import timezone
 from django.conf import settings
-from .models import FetchDateTimes, Security, GameData,ChannelData, Stream
+from .models import FetchDateTimes, Security, GameData,ChannelData, Stream,  OneMinuteData, FifteenMinuteData, OneHourData, FourHourData, DailyData
 from django.db.models.functions import TruncSecond, TruncMinute, TruncHour, TruncDay
 from django.db.models import F 
 
@@ -127,16 +127,27 @@ def fetch_data(game):
 def separate_data():
     const_chart_lengths = [2, 30, 120, 480, 2880]
     const_today = datetime.combine(datetime.today(), time(0,0,0), tzinfo=timezone.utc)
-    unique_streamers = Stream.objects.values('channel').distinct()
+    unique_streamers = Stream.objects.annotate(todays_data=TruncDay('creation_date')).filter(todays_data=const_today).values('channel').distinct()
     for ind, streamer in enumerate(unique_streamers):
         streamer_name = ChannelData.objects.get(pk = streamer['channel']).channel_name
-        streamer_qs = Stream.objects.filter(channel = streamer['channel']).annotate(stream_today=TruncDay('stream_date')).filter(stream_today = const_today).order_by('creation_date').values('creation_date', 'viewer_count', 'channel_id')
+        streamer_qs = Stream.objects.filter(channel = streamer['channel']).order_by('creation_date').values('creation_date', 'viewer_count', 'channel_id')
         len_streamer_qs = len(streamer_qs)
         if not len_streamer_qs:
             continue
+        
+        streamdf = pd.DataFrame(streamer_qs)
+    
+        minute = streamdf.resample("T", on='creation_date').mean().reset_index().iloc[[0]] 
+        OneMinuteData.objects.update_or_create(channel_name = streamer_name, channel_id = streamer['channel'], viewers_date = minute['creation_date'][0], defaults={'viewers': minute['viewer_count'][0]})
 
-        if ind == 0: # need to implement dataframe updating for all timeframes
-            streamdf = pd.DataFrame(streamer_qs)
-            thirtysecond = streamdf.resample("D", on='creation_date').mean().reset_index()
-            return thirtysecond
-                
+        fifteen_minute = streamdf.resample("15T", on='creation_date').mean().reset_index().iloc[[0]]
+        FifteenMinuteData.objects.update_or_create(channel_name = streamer_name, channel_id = streamer['channel'], viewers_date = fifteen_minute['creation_date'][0], defaults={'viewers': fifteen_minute['viewer_count'][0]})
+
+        hourly = streamdf.resample("1H", on='creation_date').mean().reset_index().iloc[[0]]
+        OneHourData.objects.update_or_create(channel_name = streamer_name, channel_id = streamer['channel'], viewers_date = hourly['creation_date'][0], defaults={'viewers': hourly['viewer_count'][0]})
+
+        four_hr = streamdf.resample("4H", on='creation_date').mean().reset_index().iloc[[0]]
+        FourHourData.objects.update_or_create(channel_name = streamer_name, channel_id = streamer['channel'], viewers_date = four_hr['creation_date'][0], defaults={'viewers': four_hr['viewer_count'][0]})
+
+        daily = streamdf.resample("D", on='creation_date').mean().reset_index().iloc[[0]]
+        DailyData.objects.update_or_create(channel_name = streamer_name, channel_id = streamer['channel'], viewers_date = daily['creation_date'][0], defaults={'viewers': daily['viewer_count'][0]})

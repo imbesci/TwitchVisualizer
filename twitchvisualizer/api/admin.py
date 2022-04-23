@@ -25,10 +25,12 @@ class CeleryFetchQueryAdmin(admin.ModelAdmin):
 class ChannelDataAdmin(admin.ModelAdmin):
     readonly_fields = ('channel_name', 'channel_id', 'channel_login', 'fetch_set', 'creation_date', 'pk')
     list_display = readonly_fields
+    list_filter = ('channel_name',)
 
 class StreamAdmin(admin.ModelAdmin):
-    readonly_fields = ('channel', 'viewer_count', 'game_played', 'stream_date', 'fetch_set', 'creation_date' )
+    readonly_fields = ('channel', 'viewer_count', 'game_played', 'stream_date', 'fetch_set' )
     list_display = ('channel', 'viewer_count', 'game_played', 'stream_date', 'fetch_set', 'creation_date') 
+    list_filter = ('channel', 'stream_date', 'fetch_set', 'creation_date') 
 
 
 

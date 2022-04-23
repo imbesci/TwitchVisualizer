@@ -91,6 +91,7 @@ class OneMinuteData(models.Model):
     
     channel_name = models.CharField(max_length=250)
     viewers = models.IntegerField()
+    viewers_date = models.DateTimeField()
     channel_id = models.IntegerField()
 
 class FifteenMinuteData(models.Model):
@@ -99,6 +100,7 @@ class FifteenMinuteData(models.Model):
     
     channel_name = models.CharField(max_length=250)
     viewers = models.IntegerField()
+    viewers_date = models.DateTimeField()
     channel_id = models.IntegerField()
 
 class OneHourData(models.Model):
@@ -107,6 +109,7 @@ class OneHourData(models.Model):
     
     channel_name = models.CharField(max_length=250)
     viewers = models.IntegerField()
+    viewers_date = models.DateTimeField()
     channel_id = models.IntegerField()
 
 class FourHourData(models.Model):
@@ -115,6 +118,7 @@ class FourHourData(models.Model):
     
     channel_name = models.CharField(max_length=250)
     viewers = models.IntegerField()
+    viewers_date = models.DateTimeField()
     channel_id = models.IntegerField()
 
 class DailyData(models.Model):
@@ -123,6 +127,7 @@ class DailyData(models.Model):
     
     channel_name = models.CharField(max_length=250)
     viewers = models.IntegerField()
+    viewers_date = models.DateTimeField()
     channel_id = models.IntegerField()
 
 ####                                     ####
