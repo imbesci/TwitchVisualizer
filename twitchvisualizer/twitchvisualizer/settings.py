@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'django_extensions',
+    'django_celery_beat',
     'django_celery_results',
     'api',
     'frontend',
@@ -93,10 +94,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 } 
-
-CRONJOBS = [
-    ('* * * * *', 'api.cron.testfunc',), 
-]
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -149,7 +146,6 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
-
 CELERY_RESULT_BACKEND = 'django-db'
 
 #GLOBAL VAR
@@ -157,7 +153,7 @@ TWITCH_CLIENT_ID = env('CLIENT_ID')
 TWITCH_CLIENT_SECRET = env('CLIENT_SECRET')
 
 #SHELL_PLUS_CONFIG
-SHELL_PLUS_IMPORTS = ['from api.twitch import *', 'from django.db.models.functions import TruncSecond']
+SHELL_PLUS_IMPORTS = ['from api.tasks import *', 'from django.db.models.functions import TruncSecond']
 
 #CORS
 CORS_ORIGIN_ALLOW_ALL = True
@@ -172,3 +168,5 @@ CORS_ALLOW_METHODS = [
     "PUT",
 ]
 # CORS_ALLOW_HEADERS=['access-control-allow-origin', 'access-control-allow-methods']
+
+

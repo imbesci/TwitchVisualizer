@@ -27,7 +27,7 @@ class Security(models.Model):
     creation_date = models.DateTimeField('Created', default=timezone.now)
 
     def __str__(self):
-        return f'{self.object_creation_date}'
+        return f'{self.creation_date}'
 
 #Each celery fetch will be linked to models.FetchDateTimes
 class CeleryFetchQuery(models.Model):
@@ -94,6 +94,9 @@ class OneMinuteData(models.Model):
     viewers_date = models.DateTimeField()
     channel_id = models.IntegerField()
 
+    def __str__(self) -> str:
+        return f'{self.channel_name} || {self.viewers} || {self.viewers_date}'
+
 class FifteenMinuteData(models.Model):
     class Meta:
         verbose_name_plural = 'Fifteen Minute Data'
@@ -102,6 +105,9 @@ class FifteenMinuteData(models.Model):
     viewers = models.IntegerField()
     viewers_date = models.DateTimeField()
     channel_id = models.IntegerField()
+
+    def __str__(self) -> str:
+        return f'{self.channel_name} || {self.viewers} || {self.viewers_date}'
 
 class OneHourData(models.Model):
     class Meta:
@@ -112,6 +118,9 @@ class OneHourData(models.Model):
     viewers_date = models.DateTimeField()
     channel_id = models.IntegerField()
 
+    def __str__(self) -> str:
+        return f'{self.channel_name} || {self.viewers} || {self.viewers_date}'
+    
 class FourHourData(models.Model):
     class Meta:
         verbose_name_plural = '4 Hour Data'
@@ -121,6 +130,9 @@ class FourHourData(models.Model):
     viewers_date = models.DateTimeField()
     channel_id = models.IntegerField()
 
+    def __str__(self) -> str:
+        return f'{self.channel_name} || {self.viewers} || {self.viewers_date}'
+
 class DailyData(models.Model):
     class Meta:
         verbose_name_plural = 'Daily Data'
@@ -129,5 +141,8 @@ class DailyData(models.Model):
     viewers = models.IntegerField()
     viewers_date = models.DateTimeField()
     channel_id = models.IntegerField()
+
+    def __str__(self) -> str:
+        return f'{self.channel_name} || {self.viewers} || {self.viewers_date}'
 
 ####                                     ####

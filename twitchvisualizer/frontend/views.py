@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from api.tasks import celerytestfunction
 
 # Create your views here.
 

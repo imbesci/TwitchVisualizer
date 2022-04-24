@@ -30,7 +30,12 @@ class ChannelDataAdmin(admin.ModelAdmin):
 class StreamAdmin(admin.ModelAdmin):
     readonly_fields = ('channel', 'viewer_count', 'game_played', 'stream_date', 'fetch_set' )
     list_display = ('channel', 'viewer_count', 'game_played', 'stream_date', 'fetch_set', 'creation_date') 
-    list_filter = ('channel', 'stream_date', 'fetch_set', 'creation_date') 
+    list_filter = ('channel', 'stream_date', 'fetch_set', 'creation_date')
+
+class OneMinuteDataAdmin(admin.ModelAdmin):
+    readonly_fields = ('channel_name', 'viewers', 'viewers_date', 'channel_id')
+    list_display = ('channel_name', 'viewers', 'viewers_date', 'channel_id')
+    list_filter = ('channel_name', 'viewers_date',)
 
 
 
@@ -42,7 +47,7 @@ admin.site.register(apimodels.GameData, GameDataAdmin)
 admin.site.register(apimodels.CeleryFetchQuery, CeleryFetchQueryAdmin)
 admin.site.register(apimodels.ChannelData, ChannelDataAdmin)
 admin.site.register(apimodels.Stream, StreamAdmin)
-admin.site.register(apimodels.OneMinuteData)
+admin.site.register(apimodels.OneMinuteData, OneMinuteDataAdmin)
 admin.site.register(apimodels.FifteenMinuteData)
 admin.site.register(apimodels.OneHourData)
 admin.site.register(apimodels.FourHourData)
