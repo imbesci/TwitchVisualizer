@@ -3,7 +3,7 @@ import requests
 from datetime import datetime, date, time, timedelta
 from django.utils import timezone
 from django.conf import settings
-from .models import FetchDateTimes, Security, GameData, ChannelData, Stream,  OneMinuteData, FifteenMinuteData, OneHourData, FourHourData, DailyData
+from .models import FetchDateTimes, Security, GameData, ChannelData, Stream,  ThreeMinuteData, FifteenMinuteData, OneHourData, FourHourData, DailyData
 from django.db.models.functions import TruncDay
 from celery import shared_task
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
@@ -127,7 +127,14 @@ def fetch_data(game):
 
 
 def separate_data():
-    const_chart_lengths = [2, 30, 120, 480, 2880]
+    const_timeseries = ['3T','15T', '1H', '4H', 'D']
+    timeseries_to_model = {
+        '3T': ThreeMinuteData,
+        '15T': FifteenMinuteData,
+        '1H': OneHourData,
+        '4H': FourHourData,
+        'D': DailyData,
+    }
     const_today = datetime.combine(datetime.today(), time(0,0,0), tzinfo=timezone.utc)
     unique_streamers = Stream.objects.annotate(todays_data=TruncDay('creation_date')).filter(todays_data=const_today).values('channel').distinct()
     for ind, streamer in enumerate(unique_streamers):
@@ -138,22 +145,16 @@ def separate_data():
             continue
         
         streamdf = pd.DataFrame(streamer_qs)
-
-        #compile data, then fetch last index. Reset index back to 0 for easy indexing
-        minute = streamdf.resample("T", on='creation_date').mean().reset_index().iloc[[-1]].reset_index()
-        OneMinuteData.objects.update_or_create(channel_name = streamer_name, channel_id = streamer['channel'], viewers_date = minute['creation_date'][0], defaults={'viewers': minute['viewer_count'][0]})
-
-        fifteen_minute = streamdf.resample("15T", on='creation_date').mean().reset_index().iloc[[-1]].reset_index()
-        FifteenMinuteData.objects.update_or_create(channel_name = streamer_name, channel_id = streamer['channel'], viewers_date = fifteen_minute['creation_date'][0], defaults={'viewers': fifteen_minute['viewer_count'][0]})
-
-        hourly = streamdf.resample("1H", on='creation_date').mean().reset_index().iloc[[-1]].reset_index()
-        OneHourData.objects.update_or_create(channel_name = streamer_name, channel_id = streamer['channel'], viewers_date = hourly['creation_date'][0], defaults={'viewers': hourly['viewer_count'][0]})
-
-        four_hr = streamdf.resample("4H", on='creation_date').mean().reset_index().iloc[[-1]].reset_index()
-        FourHourData.objects.update_or_create(channel_name = streamer_name, channel_id = streamer['channel'], viewers_date = four_hr['creation_date'][0], defaults={'viewers': four_hr['viewer_count'][0]})
-
-        daily = streamdf.resample("D", on='creation_date').mean().reset_index().iloc[[-1]].reset_index()
-        DailyData.objects.update_or_create(channel_name = streamer_name, channel_id = streamer['channel'], viewers_date = daily['creation_date'][0], defaults={'viewers': daily['viewer_count'][0]})
+        for ind, item in const_timeseries:
+            streamdf.resample(f'{item}', on='creation_date').mean().reset_index().iloc[[-1]].reset_index()
+            (timeseries_to_model[item]
+                .objects.update_or_create(
+                    channel_name = streamer_name, 
+                    channel_id = streamer['channel'], 
+                    viewers_date = streamdf['creation_date'][0], 
+                    defaults={'viewers': streamdf['viewer_count'][0]})
+            )
+        
 
 def clean_db():
     """
@@ -173,7 +174,7 @@ def del_all():
     ChannelData.objects.all().delete()
     GameData.objects.all().delete()
     OneHourData.objects.all().delete()
-    OneMinuteData.objects.all().delete()
+    ThreeMinuteData.objects.all().delete()
     FourHourData.objects.all().delete()
     DailyData.objects.all().delete()
     FifteenMinuteData.objects.all().delete()
@@ -190,8 +191,8 @@ def gather_data(self, game):
 
 
 schedule, created = IntervalSchedule.objects.get_or_create(
-    every = 30,
-    period = IntervalSchedule.SECONDS,
+    every = 1,
+    period = IntervalSchedule.MINUTES,
 )
 
 PeriodicTask.objects.get_or_create(
@@ -199,7 +200,7 @@ PeriodicTask.objects.get_or_create(
     name = 'Fetch and compile streams',
     task = 'api.tasks.gather_data',
     args= json.dumps(['VALORANT']),
-    start_time = datetime(2022, 4, 24, 2, 31, 0, tzinfo=timezone.utc)
+    start_time = datetime(2022, 4, 25, 10, 00, 0, tzinfo=timezone.utc)
 )
 
 # clean_db_sched, success = IntervalSchedule.objects.get_or_create(

@@ -85,7 +85,7 @@ class Stream(models.Model):
     
 
 #Storage of different timeframe data for future serialization
-class OneMinuteData(models.Model):
+class ThreeMinuteData(models.Model):
     class Meta:
         verbose_name_plural = 'One Minute Data'
     
