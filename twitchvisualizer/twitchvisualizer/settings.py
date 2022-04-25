@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'corsheaders',
     'django_extensions',
     'django_celery_beat',
@@ -94,6 +95,14 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 } 
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -153,7 +162,7 @@ TWITCH_CLIENT_ID = env('CLIENT_ID')
 TWITCH_CLIENT_SECRET = env('CLIENT_SECRET')
 
 #SHELL_PLUS_CONFIG
-SHELL_PLUS_IMPORTS = ['from api.tasks import *', 'from django.db.models.functions import TruncSecond']
+SHELL_PLUS_IMPORTS = ['from api.tasks import *', 'from django.db.models.functions import TruncSecond', 'from api.serializers import *']
 
 #CORS
 CORS_ORIGIN_ALLOW_ALL = True

@@ -201,3 +201,14 @@ PeriodicTask.objects.get_or_create(
     args= json.dumps(['VALORANT']),
     start_time = datetime(2022, 4, 24, 2, 31, 0, tzinfo=timezone.utc)
 )
+
+# clean_db_sched, success = IntervalSchedule.objects.get_or_create(
+#     every = 1,
+#     period = IntervalSchedule.DAYS,
+# )
+
+# PeriodicTask.objects.get_or_create(
+#     interval = clean_db_sched,
+#     name = 'Clean Stream DB',
+#     task = 'api.tasks.clean_db',
+# )
