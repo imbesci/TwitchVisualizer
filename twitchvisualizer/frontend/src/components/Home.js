@@ -5,7 +5,7 @@ export default function HomepageApp() {
 
 
     return (
-        <button>THIS IS FROM HOMEPAGE APP</button>
+        <button className="" >THIS IS FROM HOMEPAGE APP</button>
     )
 
 }

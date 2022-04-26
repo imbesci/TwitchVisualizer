@@ -33,9 +33,11 @@ export default function App(props){
     return (
         <>
             <h1>TESTING REACT CODE WITH DJANGO</h1>
-            <HomepageApp/>
             <button onClick={handleClick}>TEST BUTTON</button>
             <p>{ourData}</p>
+            <div className="my-40">
+            <HomepageApp className=""/>
+            </div>
         </>
     )
 }
