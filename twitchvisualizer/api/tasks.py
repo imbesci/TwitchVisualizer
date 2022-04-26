@@ -143,18 +143,18 @@ def separate_data():
         len_streamer_qs = len(streamer_qs)
         if not len_streamer_qs:
             continue
-        
+    
         streamdf = pd.DataFrame(streamer_qs)
-        for ind, item in const_timeseries:
-            streamdf.resample(f'{item}', on='creation_date').mean().reset_index().iloc[[-1]].reset_index()
+        for i, item in enumerate(const_timeseries):
+            resampled_data = streamdf.resample(item, on='creation_date').mean().reset_index().iloc[[-1]].reset_index()
             (timeseries_to_model[item]
                 .objects.update_or_create(
                     channel_name = streamer_name, 
                     channel_id = streamer['channel'], 
-                    viewers_date = streamdf['creation_date'][0], 
-                    defaults={'viewers': streamdf['viewer_count'][0]})
+                    viewers_date = resampled_data['creation_date'][0], 
+                    defaults={'viewers': resampled_data['viewer_count'][0]})
             )
-        
+            
 
 def clean_db():
     """
@@ -200,7 +200,7 @@ PeriodicTask.objects.get_or_create(
     name = 'Fetch and compile streams',
     task = 'api.tasks.gather_data',
     args= json.dumps(['VALORANT']),
-    start_time = datetime(2022, 4, 25, 10, 00, 0, tzinfo=timezone.utc)
+    # start_time = datetime(2022, 4, 25, 30, 17, tzinfo=timezone.utc)
 )
 
 # clean_db_sched, success = IntervalSchedule.objects.get_or_create(

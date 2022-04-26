@@ -10,9 +10,9 @@ from .models import Stream, ThreeMinuteData, OneHourData, FourHourData, DailyDat
 
 class FilterView(APIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    const_timeseries = ['T','15T', '1H', '4H', 'D']
+    const_timeseries = ['3T','15T', '1H', '4H', 'D']
     timeseries_to_model = {
-        'T': ThreeMinuteData,
+        '3T': ThreeMinuteData,
         '15T': FifteenMinuteData,
         '1H': OneHourData,
         '4H': FourHourData,
@@ -21,7 +21,7 @@ class FilterView(APIView):
     
     def get(self, request, *args, **kwargs):
         organized_data = {
-            'T':{},
+            '3T':{},
             '15T':{},
             '1H':{},
             '4H':{},

@@ -87,7 +87,7 @@ class Stream(models.Model):
 #Storage of different timeframe data for future serialization
 class ThreeMinuteData(models.Model):
     class Meta:
-        verbose_name_plural = 'One Minute Data'
+        verbose_name_plural = 'Three Minute Data'
     
     channel_name = models.CharField(max_length=250)
     viewers = models.IntegerField()
