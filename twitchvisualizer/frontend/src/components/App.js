@@ -1,28 +1,41 @@
 import React from 'react';
 import { useEffect, useState, useRef } from 'react';
+import HomepageApp from './Home.js'
+import {BrowserRouter, Routes, Route} from "react-router-dom";
 import reactDOM from 'react-dom/client';
+import axios from 'axios';
+import '../../static/css/index.css';
 
 
 
 export default function App(props){
     const [ourData, setOurData] = useState(null)
 
-    useEffect(() =>{
-        console.log('run')
-        fetch('http://localhost:8000/api/streamdata',
-        {   
-            method: 'GET',
-            mode: 'no-cors'
-        })
-        .then((res) => {return res.json()})
-        .then((data)=> {return setOurData(data)})
+    const streamdata = axios.create({
+        baseURL: 'http://localhost:8000/',
+        timeout: '10000',
     })
+
+    useEffect(() =>{
+        streamdata.get('api/api/')
+        .then(res => {console.log(res.data)})
+    },[])
+
+    async function handleClick(){
+        setOurData('data set')
+        const sleep = (milliseconds) => {
+            return new Promise(resolve => setTimeout(resolve, milliseconds))
+          }
+        await sleep(3000)
+        console.log('this came after the set data')
+    }
 
     return (
         <>
-        <h1>TESTING REA CODE WITH DJANGO</h1>
-        <button>TEST BUTTON</button>
-        <p>{ourData}</p>
+            <h1>TESTING REACT CODE WITH DJANGO</h1>
+            <HomepageApp/>
+            <button onClick={handleClick}>TEST BUTTON</button>
+            <p>{ourData}</p>
         </>
     )
 }
