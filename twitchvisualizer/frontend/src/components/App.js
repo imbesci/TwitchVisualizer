@@ -1,25 +1,21 @@
 import React from 'react';
 import { useEffect, useState, useRef } from 'react';
 import HomepageApp from './Home.js'
+import TestChart from './TestChart.js';
+import {Line} from 'react-chartjs-2'
 import {BrowserRouter, Routes, Route} from "react-router-dom";
 import reactDOM from 'react-dom/client';
-import axios from 'axios';
 import '../../static/css/index.css';
+import { Chart, registerables } from 'chart.js';
+Chart.register(...registerables);
 
 
 
 export default function App(props){
     const [ourData, setOurData] = useState(null)
+    const [apiData, setApiData] = useState({data: null})
 
-    const streamdata = axios.create({
-        baseURL: 'http://localhost:8000/',
-        timeout: '10000',
-    })
 
-    useEffect(() =>{
-        streamdata.get('api/api/')
-        .then(res => {console.log(res.data)})
-    },[])
 
     async function handleClick(){
         setOurData('data set')
@@ -32,11 +28,13 @@ export default function App(props){
 
     return (
         <>
-            <h1>TESTING REACT CODE WITH DJANGO</h1>
+            <h1>TESTING REACT CODEes WITH DJANGO</h1>
             <button onClick={handleClick}>TEST BUTTON</button>
             <p>{ourData}</p>
-            <div className="my-40">
-            <HomepageApp className=""/>
+            <HomepageApp/>
+
+            <div className='w-6/12 h-6/12'>
+            <TestChart/>
             </div>
         </>
     )

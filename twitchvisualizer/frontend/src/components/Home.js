@@ -5,7 +5,7 @@ export default function HomepageApp() {
 
 
     return (
-        <button className="" >THIS IS FROM HOMEPAGE APP</button>
+        <button className="bg-[#FF4654] text-8xl rounded-lg px-20">VALORANT</button>
     )
 
 }
