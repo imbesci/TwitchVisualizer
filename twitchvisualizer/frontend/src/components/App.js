@@ -33,7 +33,7 @@ export default function App(props){
             <p>{ourData}</p>
             <HomepageApp/>
 
-            <div className='w-6/12 h-6/12'>
+            <div className='w-9/12 h-9/12'>
             <TestChart/>
             </div>
         </>
