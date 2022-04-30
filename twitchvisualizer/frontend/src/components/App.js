@@ -6,8 +6,9 @@ import {Line} from 'react-chartjs-2'
 import {BrowserRouter, Routes, Route} from "react-router-dom";
 import reactDOM from 'react-dom/client';
 import '../../static/css/index.css';
+import zoomPlugin from 'chartjs-plugin-zoom';
 import { Chart, registerables } from 'chart.js';
-Chart.register(...registerables);
+Chart.register(zoomPlugin,...registerables);
 
 
 
@@ -33,7 +34,7 @@ export default function App(props){
             <p>{ourData}</p>
             <HomepageApp/>
 
-            <div className='w-9/12 h-9/12'>
+            <div className='w-7/12 h-7/12'>
             <TestChart/>
             </div>
         </>
