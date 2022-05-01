@@ -4,6 +4,7 @@ import {useRef, useEffect, useState} from 'react';
 import {Chart as ChartJS, registerables } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { Chart } from "react-chartjs-2";
+const { List, Map, OrderedMap } =  require('immutable')
 var moment = require('moment');
 
 
@@ -15,8 +16,8 @@ export default function TestChart(){
     let streamerKeys = useRef([])                        //keep track of all the streamers that has data available
     let colors = useRef({})                             // {streamerName:color,} to fetch colors on chart update
     let chartRef = useRef(null)                         //ref tied to the lineChart dom object
-    let testRef = useRef(false)
     
+
     const streamData = axios.create({
         baseURL: 'http://localhost:8000/',
         timeout: '10000',
@@ -56,78 +57,88 @@ export default function TestChart(){
     let threeMinChartData = {
         datasets: [],
     }                              //chart data is appended here
-    
 
-    function generateRandomColor() {
+    const getDataFromServer = async() => {  //generic fetch api function 
+        const response = await streamData.get('api/api/');
+        apiStorage.current = response.data['3T']
+        console.log(apiStorage.current)
+    }                 
+
+    function generateRandomColor() {  //random hexadecimal color gen
         var letters = '0123456789ABCDEF';
         var color = '#';
         for (var i = 0; i < 6; i++) {
           color += letters[Math.floor(Math.random() * 16)];
         }
         return color;
-      }
-    
-    const getDataFromServer = async() => {
-        const response = await streamData.get('api/api/');
-        apiStorage.current = response.data['3T']
-        console.log(apiStorage.current)
-    }                                         //generic fetch api function 
-    
-    const initialFetch = async() => {
-        await getDataFromServer()
-        setFetched(!fetched)    
     }
-    
-    function organizeInitialData(currData){
-        const keyMap = ['channel_id', 'channel_name', 'id', 'viewers', 'viewers_date']
-        const streamKeys = Object.keys(currData).slice(0,30)
-        if (!colors.current.length){
-            for (let a=0; a<streamKeys.length;a++){
-                colors.current[streamKeys[a]] = generateRandomColor()
-            }
-        }
-        streamKeys.forEach((name, index) => {
-            currData[name].forEach((obj) => {
-                delete obj[keyMap[0]]; delete obj[keyMap[1]]; delete obj[keyMap[2]]; 
-                obj['x'] = moment(obj['viewers_date']).format('lll');
-                obj['y'] = obj['viewers'];
-                delete obj[keyMap[3]]; delete obj[keyMap[4]];  //rename viewers and viewers_date to x and y respectively, delete excess data
-            })
-            threeMinChartData.datasets.push({
-                label: name,
-                data: currData[name],
-                backgroundColor: colors.current[name]
-            })
-        })
-    }
-    
-    function returnKeys(currentData){
-        let allKeys = Object.keys(currentData);
+
+    function filterKeys(currentData){  //grab keys from fetched api object
+        let allKeys = Object.keys(currentData).slice(0,15);
+        let newKeyCount = 0
         if (allKeys.length){
             allKeys.map((key) => {
                 if (!streamerKeys.current.includes(key)){
-                    streamerKeys.current.push(key)
+                    streamerKeys.current.push(key);
+                    newKeyCount++;
                 }
             })
-            return true;
+            return newKeyCount.length;
         }
         return false;
     }
+   
+    const setColorMap = (numKeysToSet) => { //update colors.current dict with color mapping
+        if (!colors.current.length){
+            streamerKeys.current.forEach((key) => {
+                colors.current[key] = generateRandomColor()
+            })
+        } else {
+            len = (streamerKeys.current.length) - numKeysToSet
+            streamerKeys.current.slice(len).forEach((key) => { 
+                colors.current[key] = generateRandomColor()
+            })
+        }
+    }
 
+    const cleanDataObj = (dataObj) => { //rename viewers and viewers_date to x and y respectively, delete excess data
+        const keyMap = ['channel_id', 'channel_name', 'id', 'viewers', 'viewers_date']
+        delete dataObj[keyMap[0]]; delete dataObj[keyMap[1]]; delete dataObj[keyMap[2]];
+        dataObj['x'] = moment(dataObj['viewers_date']).format('lll'); 
+        dataObj['y'] = dataObj['viewers'];
+        delete dataObj[keyMap[3]]; delete dataObj[keyMap[4]];
+    }
+
+    const setCleanedInitialData = (streamersArray) => {
+        streamersArray.forEach((streamer)=> {
+            apiStorage.current[streamer].forEach(obj => cleanDataObj(obj))
+            threeMinChartData.datasets.push({
+                label: streamer,
+                data: apiStorage.current[streamer],
+                backgroundColor: colors.current[streamer]
+                })
+            })
+    }
+
+    function organizeInitialData(currData){
+        const keyMap = ['channel_id', 'channel_name', 'id', 'viewers', 'viewers_date']
+        const numNewStreamers = filterKeys(currData)
+        setColorMap(numNewStreamers)
+        setCleanedInitialData(streamerKeys.current)
+    }
+    
 
     useEffect(() =>{ //Fetch on initial page load
-        const awaitInitialFetch = () => ( initialFetch())
-        awaitInitialFetch()
+        const awaitData = () => ( getDataFromServer())
+        awaitData().then((res) => {
+            let currData = apiStorage.current;
+            if (apiStorage.current) {
+                organizeInitialData(currData)
+                setChartData(threeMinChartData)
+                }
+            })
     },[])
 
-    useEffect(() => {git 
-        let currData = apiStorage.current
-        if (apiStorage.current) {
-            organizeInitialData(currData)
-            setChartData(threeMinChartData)
-
-        }
-    }, [fetched])
 
     // useEffect(()=>{
     //     let refreshInterval = setInterval(() => {
@@ -136,6 +147,8 @@ export default function TestChart(){
     //     }, 1500);
     //     return () => clearInterval(refreshInterval)
     // }, [apiStorage.current])
+
+
 
     function updateChart(){
     //     DEVELOP updateChart function!!
