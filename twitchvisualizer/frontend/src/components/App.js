@@ -1,14 +1,16 @@
 import React from 'react';
 import { useEffect, useState, useRef } from 'react';
 import HomepageApp from './Home.js'
-import TestChart from './TestChart.js';
-import {Line} from 'react-chartjs-2'
+import ThreeMinChart from './ThreeMinChart.js';
 import {BrowserRouter, Routes, Route} from "react-router-dom";
 import reactDOM from 'react-dom/client';
+import {apiContext, ApiContextProvider} from './apiData.js';
 import '../../static/css/index.css';
-import zoomPlugin from 'chartjs-plugin-zoom';
-import { Chart, registerables } from 'chart.js';
-Chart.register(zoomPlugin,...registerables);
+// import {Line} from 'react-chartjs-2'
+// import zoomPlugin from 'chartjs-plugin-zoom';
+// import { Chart, registerables } from 'chart.js';
+// Chart.register(zoomPlugin,...registerables);
+
 
 
 
@@ -18,24 +20,15 @@ export default function App(props){
 
 
 
-    async function handleClick(){
-        setOurData('data set')
-        const sleep = (milliseconds) => {
-            return new Promise(resolve => setTimeout(resolve, milliseconds))
-          }
-        await sleep(3000)
-        console.log('this came after the set data')
-    }
-
     return (
         <>
             <h1>TESTING REACT CODEes WITH DJANGO</h1>
-            <button onClick={handleClick}>TEST BUTTON</button>
-            <p>{ourData}</p>
             <HomepageApp/>
-
-            <div className='w-7/12 h-7/12'>
-            <TestChart/>
+            <p>{ourData}</p>
+            <div className='w-6/12 h-4/12'>
+            <ApiContextProvider >
+                <ThreeMinChart />
+            </ApiContextProvider>
             </div>
         </>
     )
