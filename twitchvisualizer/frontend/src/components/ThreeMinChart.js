@@ -6,8 +6,8 @@ import Chart from "react-apexcharts";
 
 export default function ThreeMinChart(props){
 
-    const {chartData, apiStorage, chartOptions, colors, streamerKeys, cleanInitialData} = useContext(apiContext)
-    let data = useRef(chartData['3T'])
+    const {chartData, apiStorage, chartOptions, colors, streamerKeys, cleanInitialData, updateData} = useContext(apiContext)
+    let data = useRef([])
     let chartRef = useRef(null)                         //ref tied to the lineChart dom object
     const [updater, setUpdater] = useState(false)
     let timeArr = useRef([])
@@ -18,12 +18,31 @@ export default function ThreeMinChart(props){
         options: {
             chart: {
                 type:'line',
-                background: '#99b1bf', 
+                id: '3min',
+                background: '#212121', 
                 animations: {
                     enabled:true,
+                    easing: 'linear',
+                    dynamicAnimation: {
+                    speed: 300,
+                    },
                     animateGradually: {
                         enabled: false,
                     },
+                },
+                zoom: {
+                    enabled:true,
+                    autoScaleYaxis:true, 
+                    type: 'xy'
+                }
+            },
+            title: {
+                text: '3-Minute Twitch Viewership',
+                align: 'center',
+                style: {
+                    fontSize: '30px',
+                    fontWeight:'bold',
+                    color: '#92abd1'
                 }
             },
             stroke: {
@@ -31,10 +50,10 @@ export default function ThreeMinChart(props){
                 curve: 'smooth',
                 lineCap: 'square',
                 colors:undefined,
-                width: 2,
+                width: 3,
             },
             markers:{
-                size: 3,
+                size: 0,
                 colors: undefined,
                 strokeWidth: 0,
                 hover: {
@@ -44,17 +63,20 @@ export default function ThreeMinChart(props){
             },
             legend: {
                 show: true,
-                fontSize: '10px',
+                fontSize: '11px',
                 fontWeight: '500',
                 onItemClick: {
                     toggleDataSeries: true
                 },
                 markers: {
                     radius: 4,
+                },
+                labels: {
+                    colors: '#ffffff'
                 }
             },
             grid: {
-                borderColor: '#f1f1f1',
+                borderColor: '#333538',
             },
             tooltip: {
                 theme:'dark',
@@ -63,35 +85,51 @@ export default function ThreeMinChart(props){
                 },
                 display:'tooltip',
                 x: {
-                    show:false,
+                    show:true,
+                    format: 'MMM dd, yyyy HH:mm'
                 },
                 y: {
                     show:true,
                 }
             },
             xaxis:{
-              categories: timeArr.current
+              categories: timeArr.current,
+              type: 'datetime',
+            //   min: (Date.now()-259200),
+            //   max: Date.now()+ 4000
             },
             yaxis:{
                 type:'numeric',
                 tickAmount: 15,
+                axisTicks:{
+                    show:false
+                },
+                labels: {
+                    show:true,
+                    style: {
+                        colors: ['#ffffff'],
+                        fontSize: '12px',
+                    }
+                }
             }
         },
     })
 
     
     useEffect(()=> {
-        cleanInitialData(streamerKeys, data.current, chartDataRef.current.series, colors, timeArr.current)
-        console.log(timeArr)
-        console.log(chartDataRef.current.series)
-        setUpdater(!updater)
-    },[])
+        if (updateData){ //if we are updating the data
+            let updateArr = [] 
+            cleanInitialData(streamerKeys, updateData['3T'], updateArr, colors, timeArr.current)
+            ApexCharts.exec('3min', 'updateOptions', {
+                series: updateArr,
+                options: {xaxis:{categories: timeArr.current}} //update times
+            })
 
-    // useEffect(()=>{
-    //     console.log(chartRef)
-    // })
-
-    
+        } else { //initial config
+            cleanInitialData(streamerKeys, chartData['3T'], chartDataRef.current.series, colors, timeArr.current)
+            setUpdater(!updater)
+        }
+    },[updateData])
 
     return (
         <>

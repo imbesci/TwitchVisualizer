@@ -9,12 +9,11 @@ const apiContext = createContext()
     
 function ApiContextProvider({children}){
     
-    const [fetched, setFetched] = useState(false)          //initial fetch bool will trigger initial chart data load
     const [chartData, setChartData] = useState(null)      //initial state that generates page re-render after api fetch
     const apiStorage = useRef(null)                       //keeps track of all uptodate data
     let streamerKeys = useRef([])                        //keep track of all the streamers that has data available
     let colors = useRef({})                             // {streamerName:color,} to fetch colors on chart update
-    let testRef = useRef('test') 
+    const [updateData, setUpdateData] = useState(false)
 
     const streamData = axios.create({
         baseURL: 'http://localhost:8000/',
@@ -49,7 +48,7 @@ function ApiContextProvider({children}){
     const getDataFromServer = async() => {  //generic fetch api function 
         const response = await streamData.get('api/api/');
         apiStorage.current = response.data
-        setFetched(!fetched)
+        return response.data
     }                 
 
     function filterKeys(data){  //grab keys from fetched api object
@@ -89,7 +88,7 @@ function ApiContextProvider({children}){
         }
     }
 
-    const cleanDataObj = (dataObj, timeArray, viewerArr) => { //rename viewers and viewers_date to x and y respectively, delete excess data
+    const cleanDataObj = (dataObj, timeArray, viewerArr) => { //create data array for each streamer
         const date = moment(dataObj['viewers_date']).format('lll');
         if (!timeArray.includes(date)){
             timeArray.push(date)
@@ -127,6 +126,17 @@ function ApiContextProvider({children}){
             })
     },[])
 
+    useEffect(()=> { 
+        let interval = setInterval(()=> {
+            getDataFromServer()//fetch data
+                .then((response)=> {
+                    console.log({response})
+                    setUpdateData(response)
+                })
+        }, 2000)
+        return () => clearInterval(interval)
+    })
+
 
     return (
         <>
@@ -136,6 +146,7 @@ function ApiContextProvider({children}){
                 chartOptions: chartOptions,
                 colors: colors.current,
                 streamerKeys: streamerKeys.current,
+                updateData:updateData,
                 cleanInitialData: cleanInitialData,
                 }
             }>
