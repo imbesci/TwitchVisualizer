@@ -32,7 +32,7 @@ class FilterView(APIView):
         for ind, streamer in enumerate(unique_streamers):
             name = ChannelData.objects.get(pk = streamer['channel']).channel_name
             for time in self.const_timeseries:
-                data = self.timeseries_to_model[time].objects.filter(channel_name = name).order_by('viewers_date').values()
+                data = self.timeseries_to_model[time].objects.filter(channel_name = name).order_by('viewers_date').values('viewers','viewers_date')
                 organized_data[time][name] = ViewerDataSer(data, many=True).data
         
         return Response(organized_data)

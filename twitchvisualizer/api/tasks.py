@@ -3,7 +3,7 @@ import requests
 from datetime import datetime, date, time, timedelta
 from django.utils import timezone
 from django.conf import settings
-from .models import FetchDateTimes, Security, GameData, ChannelData, Stream,  ThreeMinuteData, FifteenMinuteData, OneHourData, FourHourData, DailyData
+from .models import FetchDateTimes, Security, GameData, ChannelData, Stream,  ThreeMinuteData, FifteenMinuteData, OneHourData, FourHourData, DailyData, TimeKeeping
 from django.db.models.functions import TruncDay
 from celery import shared_task
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
@@ -84,7 +84,7 @@ def fetch_streams(id, token, new_date, game):
     game_object = GameData.objects.filter(game_name=f'{game}')[0]
     parameters = {
         'game_id': game_object.game_id,
-        'first': '30'
+        'first': '10'
         }
     retry_count = 0
     while retry_count < 3:
@@ -135,6 +135,7 @@ def separate_data():
         '4H': FourHourData,
         'D': DailyData,
     }
+    current_time_array = []
     const_today = datetime.combine(datetime.today(), time(0,0,0), tzinfo=timezone.utc)
     unique_streamers = Stream.objects.annotate(todays_data=TruncDay('creation_date')).filter(todays_data=const_today).values('channel').distinct()
     for ind, streamer in enumerate(unique_streamers):
@@ -154,6 +155,10 @@ def separate_data():
                     viewers_date = resampled_data['creation_date'][0], 
                     defaults={'viewers': resampled_data['viewer_count'][0]})
             )
+            if resampled_data['creation_date'][0] not in current_time_array:
+                current_time_array.append(resampled_data['creation_date'][0])
+    TimeKeeping.objects.get_or_create()
+
             
 
 def clean_db():

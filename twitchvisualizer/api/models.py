@@ -145,4 +145,14 @@ class DailyData(models.Model):
     def __str__(self) -> str:
         return f'{self.channel_name} || {self.viewers} || {self.viewers_date}'
 
-####                                     ####
+####
+
+class TimeKeeping(models.Model):
+    class Meta:
+        verbose_name_plural = 'Time Data'
+    
+    three_min = models.DateTimeField()
+    fifteen_min = models.DateTimeField()
+    one_hour = models.DateTimeField()
+    four_hour = models.DateTimeField()
+    daily = models.DateTimeField()

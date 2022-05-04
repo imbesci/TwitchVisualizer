@@ -6,11 +6,10 @@ import Chart from "react-apexcharts";
 
 export default function ThreeMinChart(props){
 
-    const {chartData, apiStorage, chartOptions, colors, streamerKeys, cleanInitialData, updateData} = useContext(apiContext)
-    let data = useRef([])
-    let chartRef = useRef(null)                         //ref tied to the lineChart dom object
+    const {chartData, globalTimeArray, colors, streamerKeys, cleanInitialData, updateData} = useContext(apiContext)                       
     const [updater, setUpdater] = useState(false)
-    let timeArr = useRef([])
+    let timeArr = useRef(globalTimeArray['3T'])
+    let plottedStreamers = useRef([])
 
 
     let chartDataRef = useRef({
@@ -21,10 +20,10 @@ export default function ThreeMinChart(props){
                 id: '3min',
                 background: '#212121', 
                 animations: {
-                    enabled:true,
+                    enabled: false,
                     easing: 'linear',
                     dynamicAnimation: {
-                    speed: 300,
+                    speed: 1000,
                     },
                     animateGradually: {
                         enabled: false,
@@ -40,7 +39,7 @@ export default function ThreeMinChart(props){
                 text: '3-Minute Twitch Viewership',
                 align: 'center',
                 style: {
-                    fontSize: '30px',
+                    fontSize: '40px',
                     fontWeight:'bold',
                     color: '#92abd1'
                 }
@@ -118,22 +117,27 @@ export default function ThreeMinChart(props){
     
     useEffect(()=> {
         if (updateData){ //if we are updating the data
-            let updateArr = [] 
-            cleanInitialData(streamerKeys, updateData['3T'], updateArr, colors, timeArr.current)
+            let currentData  = JSON.parse(JSON.stringify(chartDataRef.current.series)) //deepcopy
+            plottedStreamers.current = JSON.parse(JSON.stringify(streamerKeys))
             ApexCharts.exec('3min', 'updateOptions', {
                 series: updateArr,
                 options: {xaxis:{categories: timeArr.current}} //update times
             })
 
         } else { //initial config
-            cleanInitialData(streamerKeys, chartData['3T'], chartDataRef.current.series, colors, timeArr.current)
+            let seriesArr = []
+            streamerKeys.forEach((name)=> {
+                let cleanedChartData = cleanInitialData(name, chartData['3T'], colors, timeArr.current)
+                seriesArr.push(cleanedChartData)
+            })
+            chartDataRef.current.series = seriesArr
             setUpdater(!updater)
         }
-    },[updateData])
+    },[])
 
     return (
         <>
-        {updater && <Chart ref={chartRef} series={chartDataRef.current.series} options={chartDataRef.current.options}/>}
+        {updater && <Chart series={chartDataRef.current.series} options={chartDataRef.current.options}/>}
         </>
     )
 }
