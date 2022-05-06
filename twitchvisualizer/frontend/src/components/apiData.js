@@ -10,10 +10,10 @@ const apiContext = createContext()
 function ApiContextProvider({children}){
     
     const [chartData, setChartData] = useState(null)      //initial state that generates page re-render after api fetch
-    const timeArray = useRef(null)                       //keeps track of all uptodate data
-    let streamerKeys = useRef([])                        //keep track of all the streamers that has data available
-    let colors = useRef({})                             // {streamerName:color,} to fetch colors on chart update
     const [updateData, setUpdateData] = useState(false)
+    const timeArray = useRef(null)                       //keeps track of all uptodate data
+    let streamerKeys = useRef({})                        //keep track of all the streamers that has data available
+    let colors = useRef({})                             // {streamerName:color,} to fetch colors on chart update
 
     const streamData = axios.create({  //axios base instance
         baseURL: 'http://localhost:8000/',
@@ -22,30 +22,34 @@ function ApiContextProvider({children}){
 
 
     const getDataFromServer = async() => {
-        /* Fetches current api data from server using Axios */ 
+    /* Fetches current api data from server using Axios */ 
         const response = await streamData.get('api/api/');
         return response.data
     }                 
 
     function filterKeys(data){
-         /* Grab keys from fetched api object. Returns the number of new
-            keys added to be used as the params for updateColorMap() */
-        let allKeys = Object.keys(data).slice(0,15);
-        let newKeyCount = 0
-        if (allKeys.length){
-            allKeys.map((key) => {
-                if (!streamerKeys.current.includes(key)){
-                    streamerKeys.current.push(key);
-                    newKeyCount++;
-                }
-            })
-            return newKeyCount.length;
-        }
-        return false;
+    /* Takes raw api data. Returns object {index:streamer} that will
+    be used as a reference in the chart data order */
+        let allStreamers = []
+        let indToName = {};
+        Object.keys(data).map((timeframe) => {
+            indToName[timeframe] =  []
+            let allTimeframeKeys = Object.keys(data[timeframe]).slice(0,15);
+            if (allTimeframeKeys.length){
+                allTimeframeKeys.map((key) => {
+                    indToName[timeframe].push(key)
+                    if (!allStreamers.includes(key)){
+                        allStreamers.push(key)
+                    }
+                })
+            }
+        })
+        streamerKeys.current = indToName
+        return allStreamers;
     }
 
     function generateRandomColor() {
-        /* Hexadecimal color generator */
+    /* Hexadecimal color generator */
         var letters = '0123456789ABCDEF';
         var color = '#';
         for (var i = 0; i < 6; i++) {
@@ -54,34 +58,24 @@ function ApiContextProvider({children}){
         return color;
     }
    
-    const updateColorMap = (numKeysToSet) => {
-        /* Updates colors.current dict with streamer:color pairs*/
-        if (!colors.current.length){
-            streamerKeys.current.forEach((key) => {
-                colors.current[key] = generateRandomColor()
+    const updateColorMap = (streamerMap) => {
+    /* Updates colors.current dict with streamer:color pairs*/
+        Object.keys(streamerMap).map((timeframe)=>{
+            streamerMap[timeframe].forEach((streamer) => {
+                if (!Object.hasOwn(colors.current, streamer)){
+                    colors.current[streamer] = generateRandomColor()
+                }
             })
-        } else {
-            len = (streamerKeys.current.length) - numKeysToSet
-            streamerKeys.current.slice(len).forEach((key) => { 
-                colors.current[key] = generateRandomColor()
-            })
-        }
+        })
     }
 
     function gatherGlobalData(data){
         /* Updates the streamers and colors array */
-        const numNewStreamers = filterKeys(data['D'])
-        updateColorMap(numNewStreamers)
-    }
-
-    const cleanDataObj = (dataObj, timeArray, viewerArr) => { //create data array for each streamer
-        const objUnix = moment(dataObj['viewers_date']).format('lll');
-
-
-        if (!timeArray.includes(date)){
-            timeArray.push(date)
-        } 
-        viewerArr.push(dataObj['viewers']);
+        const arrStreamers = filterKeys(data)
+        updateColorMap(streamerKeys.current)
+        console.log(streamerKeys.current)
+        console.log(colors.current)
+        return arrStreamers
     }
 
     const cleanInitialData = (streamerName, dataFromApi, colorsObject, timeArray) => {
@@ -90,9 +84,9 @@ function ApiContextProvider({children}){
         let streamerDataPointer = 0
         while (timeArrPointer<timeArray.length){
             let streamUnix;
-            try {streamUnix = moment(dataFromApi[streamerName][streamerDataPointer]['viewers_date']).unix()}
+            try {streamUnix = moment(dataFromApi[streamerName][streamerDataPointer]['viewers_date']).unix()*1000}
             catch {streamUnix = null}
-            const timeArrUnix = moment(timeArray[timeArrPointer]).unix()
+            const timeArrUnix = timeArray[timeArrPointer]
             if (streamUnix === null){
                 viewerDataArr.push(null)
                 timeArrPointer++
@@ -118,9 +112,9 @@ function ApiContextProvider({children}){
         const keys = Object.keys(response)
         keys.forEach((timeframe)=> {
             dict[timeframe] = []
-            streamers.forEach((streamer) => {
+            Object.values(streamers).forEach((streamer) => {
                 response[timeframe][streamer].forEach((obj)=> {
-                    let date = obj['viewers_date']
+                    let date = (moment(obj['viewers_date']).valueOf())
                     if (!dict[timeframe].includes(date)){
                         dict[timeframe].push(date)
                     }
@@ -132,16 +126,16 @@ function ApiContextProvider({children}){
         })
 
         timeArray.current = dict
+        console.log(dict)
     }
 
     useEffect(() =>{ //Fetch on initial page load
         const awaitData = () => ( getDataFromServer())
         awaitData()
             .then((response) => {
-            let currData = response;
-            gatherGlobalData(currData);
-            generateTimeArray(response, streamerKeys.current)
-            setChartData(currData);
+            let keys = gatherGlobalData(response)
+            generateTimeArray(response, keys)
+            setChartData(response);
         })
     },[])
 
@@ -149,6 +143,7 @@ function ApiContextProvider({children}){
         let interval = setInterval(()=> {
             getDataFromServer()//fetch data
                 .then((response)=> {
+                    gatherGlobalData(response)
                     setUpdateData(response)
                 })
         }, 2000)
@@ -164,6 +159,7 @@ function ApiContextProvider({children}){
                 globalTimeArray: timeArray.current,
                 streamerKeys: streamerKeys.current,
                 updateData:updateData,
+                gatherGlobalData: gatherGlobalData,
                 cleanInitialData: cleanInitialData,
                 }
             }>
